@@ -4,11 +4,16 @@ export const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
   storeName: "Prawira Tobacco",
   storeAddress: "Jl. Raya Cigombong, Bogor",
   storePhone: "0812-3456-7890",
+  storeWebsite: "",
   headerNote: "Kualitas & Rasa Terbaik",
   footerNote: "Terima kasih atas kunjungan Anda",
   showAddress: true,
   showPhone: true,
   paperSize: "58",
+  bankName: "BCA",
+  bankAccountNumber: "123-456-7890",
+  bankAccountHolder: "Prawira Tobacco",
+  qrisNote: "Pindai QRIS di meja kasir untuk menyelesaikan pembayaran",
 };
 
 export interface QuickWeightOption {

@@ -154,7 +154,9 @@ export function generateEscPosReceipt(order: Order, settings: ReceiptSettings): 
   if (settings.footerNote) {
     builder.text(settings.footerNote).newLine();
   }
-  builder.text("www.prawira.id").newLine();
+  if (settings.storeWebsite && settings.storeWebsite.trim().length > 0) {
+    builder.text(settings.storeWebsite.trim()).newLine();
+  }
   builder.newLine(3);
   builder.cut();
 

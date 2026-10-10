@@ -20,13 +20,14 @@ import {
   ArrowRight,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { PaymentMethod } from "../../types/transaction";
+import { PaymentMethod, ReceiptSettings } from "../../types/transaction";
 import { THEME } from "../../lib/theme";
 
 interface CheckoutModalProps {
   visible: boolean;
   onClose: () => void;
   totalAmount: number;
+  settings?: ReceiptSettings;
   onCompleteCheckout: (orderData: {
     paymentMethod: PaymentMethod;
     cashTendered?: number;
@@ -39,6 +40,7 @@ export function CheckoutModal({
   visible,
   onClose,
   totalAmount,
+  settings,
   onCompleteCheckout,
 }: CheckoutModalProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
@@ -320,8 +322,9 @@ export function CheckoutModal({
                 </View>
                 <Text style={styles.infoBannerTitle}>Pindai QRIS Toko</Text>
                 <Text style={styles.infoBannerDesc}>
-                  Arahkan pelanggan scan QRIS meja kasir sejumlah Rp
-                  {totalAmount.toLocaleString("id-ID")}.
+                  {settings?.qrisNote
+                    ? settings.qrisNote
+                    : `Arahkan pelanggan scan QRIS meja kasir sejumlah Rp ${totalAmount.toLocaleString("id-ID")}.`}
                 </Text>
               </View>
             )}
@@ -333,7 +336,10 @@ export function CheckoutModal({
                   <Building2 size={32} color={THEME.colors.primaryMuted} />
                 </View>
                 <Text style={styles.infoBannerTitle}>Transfer Bank Toko</Text>
-                <Text style={styles.bankAccountText}>BCA: 123-456-7890 (Prawira)</Text>
+                <Text style={styles.bankAccountText}>
+                  {settings?.bankName || "BCA"}: {settings?.bankAccountNumber || "123-456-7890"}
+                  {settings?.bankAccountHolder ? ` (${settings.bankAccountHolder})` : ""}
+                </Text>
                 <Text style={styles.infoBannerDesc}>
                   Pastikan bukti transfer telah terverifikasi sebelum menyelesaikan transaksi.
                 </Text>

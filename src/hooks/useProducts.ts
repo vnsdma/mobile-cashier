@@ -81,6 +81,52 @@ export function useProducts() {
     });
   }, [products, selectedCategory, searchQuery]);
 
+  // In-app product registration for commercial merchants
+  const addProduct = useCallback(
+    async (newProductData: Omit<Product, "id">): Promise<Product> => {
+      let createdProduct: Product;
+
+      try {
+        const { data, error: sbError } = await supabase
+          .from("products")
+          .insert({
+            name: newProductData.name,
+            price: newProductData.price,
+            in_stock: newProductData.in_stock ?? 100,
+            category: newProductData.category || null,
+            sell_type: newProductData.sell_type || "pcs",
+            weight_unit: newProductData.weight_unit || null,
+            barcode: newProductData.barcode || null,
+            is_favorite: Boolean(newProductData.is_favorite),
+          })
+          .select()
+          .single();
+
+        if (sbError || !data) {
+          throw sbError || new Error("Failed to insert product");
+        }
+
+        createdProduct = data as Product;
+      } catch (err) {
+        // Fallback: create product locally with unique ID for offline continuity
+        createdProduct = {
+          ...newProductData,
+          id: Date.now(),
+          created_at: new Date().toISOString(),
+        } as Product;
+      }
+
+      setProducts((prev) => {
+        const updated = [createdProduct, ...prev];
+        safeStorage.setItem(STORAGE_KEYS.PRODUCTS_CACHE, JSON.stringify(updated)).catch(() => {});
+        return updated;
+      });
+
+      return createdProduct;
+    },
+    []
+  );
+
   return {
     products,
     filteredProducts,
@@ -92,6 +138,7 @@ export function useProducts() {
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
+    addProduct,
     refetch: () => fetchProducts(true),
   };
 }

@@ -33,9 +33,15 @@ export interface ReceiptSettings {
   storeName: string;
   storeAddress: string;
   storePhone: string;
+  storeWebsite?: string;
   headerNote: string;
   footerNote: string;
   showAddress: boolean;
   showPhone: boolean;
   paperSize: "58" | "80";
+  bankName?: string;
+  bankAccountNumber?: string;
+  bankAccountHolder?: string;
+  qrisNote?: string;
 }
+

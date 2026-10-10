@@ -24,6 +24,7 @@ interface ProductPickerModalProps {
   searchQuery: string;
   onSearchChange: (text: string) => void;
   onSelectProduct: (product: Product) => void;
+  onOpenAddProduct?: () => void;
 }
 
 type TabMode = "favorites" | "all";
@@ -38,6 +39,7 @@ export function ProductPickerModal({
   searchQuery,
   onSearchChange,
   onSelectProduct,
+  onOpenAddProduct,
 }: ProductPickerModalProps) {
   const [activeTab, setActiveTab] = useState<TabMode>("favorites");
 
@@ -70,14 +72,26 @@ export function ProductPickerModal({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Katalog & Pencarian Produk</Text>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeBtn}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <X size={18} color={THEME.colors.textSecondary} />
-            </TouchableOpacity>
+            <View style={styles.headerRightActions}>
+              {onOpenAddProduct && (
+                <TouchableOpacity
+                  style={styles.addProductBtn}
+                  onPress={onOpenAddProduct}
+                  activeOpacity={0.75}
+                >
+                  <Plus size={13} color={THEME.colors.textInverse} />
+                  <Text style={styles.addProductBtnText}>+ Produk</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeBtn}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={18} color={THEME.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Segmented Tab Bar: Favorit vs Semua */}
@@ -320,6 +334,25 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: THEME.colors.textPrimary,
     fontSize: 16,
+    fontWeight: "700",
+  },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  addProductBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: THEME.colors.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: THEME.radius.sm,
+  },
+  addProductBtnText: {
+    color: THEME.colors.textInverse,
+    fontSize: 12,
     fontWeight: "700",
   },
   closeBtn: {

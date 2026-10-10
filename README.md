@@ -2,10 +2,34 @@
 
 A high-performance mobile point-of-sale (POS) application built with React Native and Expo SDK 57. Engineered for fast-paced retail counter environments requiring continuous barcode/QR scanning, dual-mode unit pricing (packaged pieces and weight-based bulk items), ESC/POS Bluetooth thermal receipt printing, WhatsApp receipt dispatch, and offline-resilient Supabase synchronization.
 
+## Commercial Overview & Hardware Showcase
+
+### In-Situ Retail Deployment
+![Retail POS Counter Setup](assets/mockups/commercial_pos_hero.jpg)
+
+The terminal operates on any smartphone mounted in an ergonomic counter stand paired with an external 58mm or 80mm Bluetooth thermal printer. It provides a compact, low-footprint cashier terminal suitable for boutiques, grocery counters, kiosks, and retail storefronts.
+
+### Tri-Screen Workflow Cockpit
+![Commercial Workflow Triad](assets/mockups/commercial_app_screens.jpg)
+
+The operational interface is split into three high-velocity transactional stages:
+1. Live Optical Viewfinder and Item Stream: Rapid scanning and instant cart insertion without interface reloads.
+2. Cash Tender and Non-Cash Reconciliation: Dynamic cash denomination chips, live change calculation, QRIS prompt, and bank transfer routing.
+3. Thermal Slip and WhatsApp Dispatch: One-tap ESC/POS receipt printing, formatted WhatsApp plain-text dispatch, and digital invoice sharing.
+
 ## Features
 
 - Split-Cockpit Cashier UI: Upper 34% dedicated to continuous live camera barcode and QR scanning with an optical targeting reticle and torch control. Lower 66% dedicated to the active cart, quick favorite items, and sticky payment actions.
 - Continuous Scanning Engine: Throttled barcode scanning (`useScannerThrottle`) prevents duplicate trigger loops while allowing cashiers to scan consecutive products without touching the display. Real-time haptic feedback (`expo-haptics`) confirms successful barcode capture.
+- Commercial Store & Receipt Configuration (`StoreSettingsModal.tsx`):
+  - Dynamic branding: Store name, physical address, phone/WhatsApp, and website/social handle.
+  - Receipt parameters: 58mm mini-roll or 80mm wide-format ESC/POS output, header tagline, and customer footer notices.
+  - Bank transfer details: Configurable bank institution (BCA, Mandiri, BRI, BNI), account number, and account holder name displayed during checkout.
+  - Granular privacy toggles for showing or hiding address and contact details on printed receipts.
+- In-App Inventory Registration (`AddProductModal.tsx`):
+  - Add products directly from the sales floor with barcode auto-generator or manual entry.
+  - Supports unit pricing (`pcs`) and weight pricing (`ons`, `gram`, `kg`).
+  - Automatic category indexing and favorite shortcut pinning.
 - Dual-Mode Pricing Engine:
   - Packaged items (`pcs`): Incremental quantity stepper (`-` / `+`).
   - Weight-based items (`ons`, `gram`, `kg`): One-tap quick weight chips (`1/2`, `1`, `2`, `5`) and manual decimal weight input. Supports half-unit pricing rules (`half_unit_price`).
@@ -72,7 +96,9 @@ A high-performance mobile point-of-sale (POS) application built with React Nativ
 
 ```text
 mobile-cashier/
-├── assets/                       # Application icons, splash screens, and adaptive assets
+├── assets/
+│   ├── mockups/                  # Commercial hardware in-situ and workflow renders
+│   └── ...                       # Application icons, splash screens, and adaptive assets
 ├── src/
 │   ├── components/
 │   │   ├── cart/
@@ -80,6 +106,7 @@ mobile-cashier/
 │   │   │   ├── CartSummaryBar.tsx     # Sticky bottom summary deck and checkout CTA
 │   │   │   └── EditCartItemModal.tsx  # Bundle discount and custom subtotal editor
 │   │   ├── catalog/
+│   │   │   ├── AddProductModal.tsx    # In-app product registration (barcode, unit/weight)
 │   │   │   └── ProductPickerModal.tsx # Product catalog browser with favorites tab
 │   │   ├── checkout/
 │   │   │   └── CheckoutModal.tsx      # Tender selection, dynamic cash chips, change calc
@@ -87,8 +114,10 @@ mobile-cashier/
 │   │   │   └── BluetoothPrinterModal.tsx # RawBT status, setup guide, and test prints
 │   │   ├── receipt/
 │   │   │   └── ReceiptModal.tsx       # Thermal slip preview, print and share actions
-│   │   └── scanner/
-│   │       └── CameraScanner.tsx      # Viewfinder, reticle overlay, torch, scan toast
+│   │   ├── scanner/
+│   │   │   └── CameraScanner.tsx      # Viewfinder, reticle overlay, torch, scan toast
+│   │   └── settings/
+│   │       └── StoreSettingsModal.tsx # Store branding, thermal paper, bank account config
 │   ├── hooks/
 │   │   ├── useCart.ts                 # Cart state management, pricing formulas, storage sync
 │   │   ├── useProducts.ts             # Supabase fetcher, category indexing, offline cache

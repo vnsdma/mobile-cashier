@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -17,6 +17,7 @@ import {
   PackageSearch,
   Star,
   Plus,
+  Settings,
 } from "lucide-react-native";
 import { useProducts } from "../hooks/useProducts";
 import { useCart } from "../hooks/useCart";
@@ -24,6 +25,8 @@ import { CameraScanner } from "../components/scanner/CameraScanner";
 import { CartItemRow } from "../components/cart/CartItemRow";
 import { CartSummaryBar } from "../components/cart/CartSummaryBar";
 import { ProductPickerModal } from "../components/catalog/ProductPickerModal";
+import { AddProductModal } from "../components/catalog/AddProductModal";
+import { StoreSettingsModal } from "../components/settings/StoreSettingsModal";
 import { CheckoutModal } from "../components/checkout/CheckoutModal";
 import { ReceiptModal } from "../components/receipt/ReceiptModal";
 import { EditCartItemModal } from "../components/cart/EditCartItemModal";
@@ -51,6 +54,7 @@ export function CashierScreen() {
     selectedCategory,
     setSelectedCategory,
     error: supabaseError,
+    addProduct,
     refetch: refetchProducts,
   } = useProducts();
 
@@ -68,13 +72,42 @@ export function CashierScreen() {
 
   // Modals state
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isBluetoothModalOpen, setIsBluetoothModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
-  const [receiptSettings] = useState<ReceiptSettings>(DEFAULT_RECEIPT_SETTINGS);
+  const [receiptSettings, setReceiptSettings] = useState<ReceiptSettings>(DEFAULT_RECEIPT_SETTINGS);
+
+  // Load persisted receipt and store settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const saved = await safeStorage.getItem(STORAGE_KEYS.RECEIPT_SETTINGS);
+        if (saved) {
+          setReceiptSettings((prev) => ({ ...prev, ...JSON.parse(saved) }));
+        }
+      } catch {
+        // Ignore cache error
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleSaveSettings = async (newSettings: ReceiptSettings) => {
+    setReceiptSettings(newSettings);
+    try {
+      await safeStorage.setItem(
+        STORAGE_KEYS.RECEIPT_SETTINGS,
+        JSON.stringify(newSettings)
+      );
+    } catch (err) {
+      console.warn("Gagal menyimpan pengaturan toko:", err);
+    }
+  };
 
   // Quick favorite products for fast 1-tap addition
   const favoriteProducts = useMemo(() => {
@@ -232,7 +265,9 @@ export function CashierScreen() {
         {/* Cockpit Header Bar */}
         <View style={styles.cartHeaderBar}>
           <View style={styles.brandTitleRow}>
-            <Text style={styles.brandTitleText}>PRAWIRA POS</Text>
+            <Text style={styles.brandTitleText} numberOfLines={1}>
+              {receiptSettings.storeName ? receiptSettings.storeName.toUpperCase() : "PRAWIRA POS"}
+            </Text>
             <View style={styles.connectionBadge}>
               {supabaseError ? (
                 <>
@@ -267,6 +302,15 @@ export function CashierScreen() {
             >
               <PackageSearch size={14} color={THEME.colors.textPrimary} />
               <Text style={styles.catalogBtnText}>Katalog</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingsHeaderBtn}
+              onPress={() => setIsSettingsOpen(true)}
+              activeOpacity={0.7}
+              accessibilityLabel="Pengaturan Toko dan Struk"
+            >
+              <Settings size={14} color={THEME.colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -353,10 +397,35 @@ export function CashierScreen() {
         onSelectCategory={setSelectedCategory}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onOpenAddProduct={() => {
+          setIsCatalogOpen(false);
+          setIsAddProductOpen(true);
+        }}
         onSelectProduct={(product) => {
           addProductToCart(product);
           setIsCatalogOpen(false);
         }}
+      />
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        visible={isAddProductOpen}
+        onClose={() => setIsAddProductOpen(false)}
+        categories={categories}
+        onAddProduct={async (productData) => {
+          const created = await addProduct(productData);
+          if (created) {
+            addProductToCart(created);
+          }
+        }}
+      />
+
+      {/* Store Profile & Commercial Receipt Settings Modal */}
+      <StoreSettingsModal
+        visible={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={receiptSettings}
+        onSave={handleSaveSettings}
       />
 
       {/* Checkout & Cash Calculator Tender Modal */}
@@ -364,6 +433,7 @@ export function CashierScreen() {
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         totalAmount={totalAmount}
+        settings={receiptSettings}
         onCompleteCheckout={handleCheckoutComplete}
       />
 
@@ -506,6 +576,16 @@ const styles = StyleSheet.create({
     color: THEME.colors.textPrimary,
     fontSize: 11,
     fontWeight: "700",
+  },
+  settingsHeaderBtn: {
+    width: 32,
+    height: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: THEME.colors.surfaceElevated,
+    borderRadius: THEME.radius.xs,
+    borderWidth: 1,
+    borderColor: THEME.colors.border,
   },
   quickShelfContainer: {
     borderBottomWidth: 1,
